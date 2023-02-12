@@ -71,6 +71,9 @@ export function App() {
 
   return (
     <>
+      <div className='title-container'>
+        <h1>{title}</h1>
+      </div>
       <div className='layout-column justify-content-center mt-75'>
         <div className='layout-row justify-content-center'>
           <div className='card pt-25'>
