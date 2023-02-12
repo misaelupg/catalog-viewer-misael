@@ -1,9 +1,19 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 
 import { image1, image2, image3, image4 } from './assets/images';
 import { Thumbs, Viewer } from './components';
 
 const title = 'Catalog Viewer';
+
+const getNextIndex = (activeIndex, direction, catalogs) => {
+  if (direction > 0 && activeIndex === catalogs.length - 1) {
+    return 0;
+  } else if (direction < 0 && activeIndex === 0) {
+    return (catalogs.length - 1);
+  } else {
+    return activeIndex + direction;
+  }
+}
 
 export function App() {
   const catalogsList = [
@@ -30,6 +40,35 @@ export function App() {
   const [slideTimer, setSlideTimer] = useState(null);
   const [slideDuration] = useState(3000);
 
+  useEffect(() => {
+    return () => clearInterval(slideTimer)
+  }, []);
+  const onCheckboxChange = (value) => {
+    if (value) {
+      createTimer();
+    } else {
+      deleteTimer();
+    }
+  }
+
+  const moveTo = (direction) => {
+    setActiveIndex(getNextIndex(activeIndex, direction, catalogs));
+  }
+
+  const createTimer = () => {
+    const interval = setInterval(() =>   {
+      setActiveIndex(
+          activeIndex => getNextIndex(activeIndex, 1, catalogs)
+      );
+    }, slideDuration)
+    setSlideTimer(interval);
+  }
+
+  const deleteTimer = () => {
+    clearInterval(slideTimer);
+    setSlideTimer(null);
+  }
+
   return (
     <>
       <div className='layout-column justify-content-center mt-75'>
@@ -38,12 +77,14 @@ export function App() {
             <Viewer catalogImage={catalogs[activeIndex].image} />
             <div className='layout-row justify-content-center align-items-center mt-20'>
               <button
+                  onClick={() => moveTo(-1)}
                 className='icon-only outlined'
                 data-testid='prev-slide-btn'>
                 <i className='material-icons'>arrow_back</i>
               </button>
-              <Thumbs items={catalogs} currentIndex={activeIndex} />
+              <Thumbs onSelect={(i) => setActiveIndex(i)} items={catalogs} currentIndex={activeIndex} />
               <button
+                  onClick={() => moveTo(1)}
                 className='icon-only outlined'
                 data-testid='next-slide-btn'>
                 <i className='material-icons'>arrow_forward</i>
@@ -52,7 +93,7 @@ export function App() {
           </div>
         </div>
         <div className='layout-row justify-content-center mt-25'>
-          <input type='checkbox' data-testid='toggle-slide-show-button' />
+          <input type='checkbox' checked={slideTimer !== null} onChange={(e) => onCheckboxChange(e.target.checked)} data-testid='toggle-slide-show-button' />
           <label className='ml-6'>Start Slide Show</label>
         </div>
       </div>
